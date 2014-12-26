@@ -42,8 +42,10 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Library1.fs" />
+    <Compile Include="CatanUnionTypes.fs" />
     <None Include="Script.fsx" />
+    <Compile Include="CatanRecordTypes.fs" />
+    <Compile Include="Util.fs" />
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>

@@ -1,4 +1,5 @@
 ﻿namespace CatanEngine
+open Util
 open CatanEngine
 
 type RollChit(roll:Roll) = 
@@ -12,10 +13,15 @@ type Hex(terrain:Terrain,rollChit:RollChit,hasRobber:bool) =
 type Road(color:Color) = 
     member this.Color=color
 
-type SettlementOrCity(color:Color,isCity:bool) =
-    member this.Color=color
-    member this.IsCity = isCity
-    member this.IsSettlement = not isCity
+//type Settlement(color:Color) =
+    //member this.Color=color
+
+//type City(color:Color) =
+    //member this.Color=color
+
+type SettlementOrCity =
+    |City of Color
+    |Settlement of Color
 
 type CatanPlayer(color:Color,resources:List<Resource>,developmentCards:List<DevelopmentCard>,specialCards:List<SpecialCard>,settlements:List<Option<SettlementOrCity>>,roads:List<Option<Road>>) = 
     member this.Color=color
@@ -30,16 +36,28 @@ type CatanPlayer(color:Color,resources:List<Resource>,developmentCards:List<Deve
             |> List.filter (fun dc -> dc = DevelopmentCard.VictoryPoint) 
             |> List.length
         let specialCardPoints=this.SpecialCards.Length*2
-        devCardPoints+specialCardPoints
+        let settlementPoints=
+            this.Settlements
+            |>List.sumBy (fun e->
+                match e with
+                |None -> 0
+                |Some(s) -> match s with
+                                |Settlement(_) -> 1 
+                                |City(_) -> 2)
+        devCardPoints + specialCardPoints + settlementPoints
     
-type CatanBoard(hexes:List<Hex>,ports:List<Port>,players:List<CatanPlayer>) =
+    
+type CatanBoard(hexes:List<Hex>,ports:List<Harbor>,players:List<CatanPlayer>) =
     member this.Hexes= hexes
     member this.Ports=ports
     member this.Players=players
     member this.Settlements=
-        let listsOfSettlements=
-            players
-            |>List.collect (fun p->p.Settlements)
-            |>Util.zipn
-            |>list.collect (fun s-> List.find (fun e->e))
-    member this.Roads=roads
+        players
+        |>List.map (fun p->p.Settlements)
+        |>Util.zipn
+        |>List.map (fun s-> s |> List.find (fun e->e.IsSome))
+    member this.Roads=
+        players
+        |>List.map (fun p->p.Roads)
+        |>Util.zipn
+        |>List.map (fun s-> s |> List.find (fun e->e.IsSome))
