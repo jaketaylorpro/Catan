@@ -6,3 +6,11 @@ C:\Users\jtaylor\Documents\Visual Studio 2013\Projects\Catan\CatanConsole\bin\De
 C:\Users\jtaylor\Documents\Visual Studio 2013\Projects\Catan\CatanConsole\bin\Debug\FSharp.Core.xml
 C:\Users\jtaylor\Documents\Visual Studio 2013\Projects\Catan\CatanConsole\obj\Debug\CatanConsole.exe
 C:\Users\jtaylor\Documents\Visual Studio 2013\Projects\Catan\CatanConsole\obj\Debug\CatanConsole.pdb
+C:\git\Catan\CatanConsole\bin\Debug\CatanConsole.exe.config
+C:\git\Catan\CatanConsole\bin\Debug\CatanConsole.XML
+C:\git\Catan\CatanConsole\bin\Debug\CatanConsole.exe
+C:\git\Catan\CatanConsole\bin\Debug\CatanConsole.pdb
+C:\git\Catan\CatanConsole\bin\Debug\FSharp.Core.dll
+C:\git\Catan\CatanConsole\bin\Debug\FSharp.Core.xml
+C:\git\Catan\CatanConsole\obj\Debug\CatanConsole.exe
+C:\git\Catan\CatanConsole\obj\Debug\CatanConsole.pdb

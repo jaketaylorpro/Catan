@@ -6,6 +6,23 @@ let zipn<'a> l:List<List<'a>> =
         | 0 -> w
         | _ -> zipnHelp (List.tail l) (List.map2 (fun a b->a::b) (List.head l) w)
     zipnHelp l (List.map (fun e-> []) l)
+let removeIndex<'a> (l:List<'a>) (i:int) :List<'a> =
+    l 
+    |> List.mapi (fun (index:int) (o:'a) -> if index=i then [] else [o])
+    |> List.collect (fun o->o)
+    
+let rec containsm<'a when 'a : comparison> (l:List<'a>) (sl:List<'a>) :bool =
+    match sl with
+    |[] -> true
+    |_ -> match List.tryFindIndex (fun o->o=sl.Head) l with
+           |None -> false
+           |Some(x) -> containsm (removeIndex l x) (sl.Tail)
+
+let rec removeAllm<'a when 'a : comparison> (l:List<'a>) (sl:List<'a>) :List<'a> =
+    match sl with
+    |[] -> l
+    |_ -> let x= (List.findIndex (fun o->o=sl.Head) l)
+          removeAllm (removeIndex l x) (sl.Tail)
 
 type HexGraph<'a ,'b when 'a : comparison and 'b : comparison>=
     | Vertex of 'a * Option<HexGraph<'a,'b>> * Option<HexGraph<'a,'b>> * Option<HexGraph<'a,'b>>
