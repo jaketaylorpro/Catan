@@ -1,5 +1,10 @@
 ﻿module Util
-
+let groupBy<'a,'b when 'b : comparison> (l:List<'a>) (f:('a->'b)) :Map<'b,List<'a>>=
+    l
+    |>Map.ofList
+    |>Map.map (fun k v ->)
+    |>List.map (fun o->((f o),o))
+    |>List.fold (fun (acc:Map<'b,List<'a>>) ((key:'b),(value:'a)) -> if (acc.ContainsKey key) then acc.[key].add value else (acc.Add (key,[value]))) (new Map<'b,List<'a>>)
 let zipn<'a> l:List<List<'a>> = 
     let rec zipnHelp (l:List<List<'a>>) (w:List<List<'a>>) =
         match l.Length with

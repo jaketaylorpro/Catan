@@ -9,6 +9,10 @@ type Resource = Brick | Wool    | Ore       | Grain  | Wood
 type Harbor =
     | SpecialHarbor of Resource
     | NormalHarbor
+    | NoHarbor
+type Robber =
+    | Robber
+    | NoRobber
 type Roll = One | Two | Three | Four | Five | Six | Seven | Eight | Nine | Ten | Eleven | Twelve
 type Color = Red | Blue | Orange | White
 type DevelopmentCardType = RoadBuilding | YearOfPlenty | Monopoly | Knight | VictoryPoint

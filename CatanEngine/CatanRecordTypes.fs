@@ -11,10 +11,10 @@ type DevelopmentCard(developmentCardType:DevelopmentCardType,id:int,isNew:bool) 
     member this.Id=id
     member this.IsNew=isNew
 
-type Hex(terrain:Terrain,rollChit:RollChit,hasRobber:bool,id:int) =
+type Hex(terrain:Terrain,rollChit:RollChit,robber:Robber,id:int) =
     member this.Terrain=terrain
     member this.RollChit=rollChit
-    member this.HasRobber=hasRobber
+    member this.Robber=robber
     member this.Id=id
 
 type Road(color:Color,id:int) = 
@@ -42,11 +42,12 @@ type SettlementOrCity =
                             |ASettlement(_) -> false
     member this.IsASettlement = not this.IsACity
 
-type SettlementOrCityVertex(settlementOrCity:SettlementOrCity,hexLeft:Hex,hexRight:Hex,hexDown:Hex) =
+type SettlementOrCityVertex(settlementOrCity:SettlementOrCity,hexLeft:Hex,hexRight:Hex,hexDown:Hex,harbor:Harbor) =
     member this.SettlementOrCity = settlementOrCity
     member this.HexLeft = hexLeft
     member this.HexRight = hexRight
     member this.HexDown = hexDown
+    member this.Harbor = harbor
         
 type RoadVertex (road:Road,HexUpLeft:Hex,HexDownRight:Hex) =
     member this.Road = road
@@ -100,6 +101,8 @@ type CatanPlayer(color:Color,resources:List<Resource>,developmentCards:List<Deve
         IterateSettlementsHelper this.SettlementGraph (new Set<Road>([])) 
         |> List.filter (fun sg -> sg.IsSome)
         |> List.map (fun sg -> sg.Value)
+    member this.IterateHarbors :List<Harbor>=
+        let getHarbor
     member this.CalculateResourcesFromRoll (r:Roll) :List<Resource> =
         this.IterateSettlements
         |> List.collect (fun (s:SettlementOrCityVertex) -> 
@@ -117,12 +120,12 @@ type CatanPlayer(color:Color,resources:List<Resource>,developmentCards:List<Deve
         let playMoves=this.DevelopmentCards
                         |> List.filter (fun dc->not dc.IsNew)
                         |> List.map (fun dc->CatanMove.PlayDevelopmentCard(dc))
-        let tradeMoves=[]//TODO
+        let tradeMoves=this.IterateHarbors //[]//TODO
         List.concat [buildMoves;playMoves;tradeMoves]
     member this.CalculateScore :int= 
         let devCardPoints=
             this.DevelopmentCards 
-            |> List.filter (fun dc -> dc = DevelopmentCard.VictoryPoint) 
+            |> List.filter (fun dc -> dc.DevelopmentCardType = DevelopmentCardType.VictoryPoint) 
             |> List.length
         let specialCardPoints=this.SpecialCards.Length*2
         let settlementPoints=
