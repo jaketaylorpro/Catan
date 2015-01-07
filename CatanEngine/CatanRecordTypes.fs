@@ -101,8 +101,6 @@ type CatanPlayer(color:Color,resources:List<Resource>,developmentCards:List<Deve
         IterateSettlementsHelper this.SettlementGraph (new Set<Road>([])) 
         |> List.filter (fun sg -> sg.IsSome)
         |> List.map (fun sg -> sg.Value)
-    member this.IterateHarbors :List<Harbor>=
-        let getHarbor
     member this.CalculateResourcesFromRoll (r:Roll) :List<Resource> =
         this.IterateSettlements
         |> List.collect (fun (s:SettlementOrCityVertex) -> 
@@ -113,14 +111,31 @@ type CatanPlayer(color:Color,resources:List<Resource>,developmentCards:List<Deve
         |> List.filter (fun (r:Option<Resource>)->r.IsSome)
         |> List.map (fun (r:Option<Resource>)->r.Value)
     member this.CalculateMoves :List<CatanMove>=
+        let getTradeMovesForTradeRatioToOne (x:int) (nr:Resource) :List<CatanMove>=
+            this.Resources
+                |> Seq.groupBy (fun (r:Resource)->r)
+                |> Map.ofSeq
+                |> Map.map (fun k v -> Seq.length v)
+                |> Map.filter (fun k v -> v>=x)
+                |> Map.toList
+                |> List.map (fun (k,v)->k)
+                |> List.map (fun k->CatanMove.TradeResources(fun rcs->nr::(rcs
+                                                                        |>Util.removen x (fun r->r=k))))//TODO doesn't support multiples yet
+        let applyForEachResource f =
+            [Brick;Wool;Ore;Grain;Wood]
+            |>List.collect (fun r->f r)
         let buildMoves= [BuildableSettlement;BuildableCity;BuildableRoad;BuildableDevelopmentCard]
-                        |> List.collect (fun b->if Util.containsm this.Resources (BuildCostMapping b) then [b] else [])
-                        |> List.map (fun b->(fun r->(Util.removeAllm r (BuildCostMapping b)),b))
+                        |> List.collect (fun b->if Util.containsm (BuildCostMapping b) this.Resources then [b] else [])
+                        |> List.map (fun b->(fun r->(Util.removeAllm (BuildCostMapping b) r),b))
                         |> List.map (fun b->CatanMove.Build(b))//TODO doesn't support multiples yet
         let playMoves=this.DevelopmentCards
                         |> List.filter (fun dc->not dc.IsNew)
                         |> List.map (fun dc->CatanMove.PlayDevelopmentCard(dc))
-        let tradeMoves=this.IterateHarbors //[]//TODO
+        let tradeMoves=this.IterateSettlements
+                        |> List.collect (fun (s:SettlementOrCityVertex) -> match s.Harbor with
+                                                                            |Harbor.NoHarbor -> applyForEachResource (getTradeMovesForTradeRatioToOne 4)
+                                                                            |Harbor.NormalHarbor -> applyForEachResource (getTradeMovesForTradeRatioToOne 3) 
+                                                                            |Harbor.SpecialHarbor(x) -> applyForEachResource (getTradeMovesForTradeRatioToOne 2))
         List.concat [buildMoves;playMoves;tradeMoves]
     member this.CalculateScore :int= 
         let devCardPoints=
