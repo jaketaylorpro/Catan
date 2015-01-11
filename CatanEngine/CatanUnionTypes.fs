@@ -13,11 +13,11 @@ type Harbor =
 type Robber =
     | Robber
     | NoRobber
-type Roll = One | Two | Three | Four | Five | Six | Seven | Eight | Nine | Ten | Eleven | Twelve
+type Roll = Two | Three | Four | Five | Six | Seven | Eight | Nine | Ten | Eleven | Twelve
 type Color = Red | Blue | Orange | White
 type DevelopmentCardType = RoadBuilding | YearOfPlenty | Monopoly | Knight | VictoryPoint
 type SpecialCard = LongestRoad | LargestArmy
-
+type HexDirection = NorthEast | East | SouthEast | SouthWest | West | NorthWest
 let TerrainResourceMapping (t:Terrain) :Option<Resource> =
     match t with
     |Hills      -> Some(Brick)

@@ -11,11 +11,67 @@ type DevelopmentCard(developmentCardType:DevelopmentCardType,id:int,isNew:bool) 
     member this.Id=id
     member this.IsNew=isNew
 
-type Hex(terrain:Terrain,rollChit:RollChit,robber:Robber,id:int) =
+type Hex(terrain:Terrain,rollChit:Option<RollChit>,robber:Robber,id:int) =
     member this.Terrain=terrain
     member this.RollChit=rollChit
     member this.Robber=robber
     member this.Id=id
+
+type HexNode (hex:Hex,hexNE:Option<HexNode>,hexE:Option<HexNode>,hexSE:Option<HexNode>,hexSW:Option<HexNode>,hexW:Option<HexNode>,hexNW:Option<HexNode>) =
+    member this.Hex=hex
+    member this.HexNorthEast=hexNE
+    member this.HexEast=hexE
+    member this.HexSouthEast=hexSE
+    member this.HexSouthWest=hexSW
+    member this.HexWest=hexW
+    member this.HexNorthWest=hexNW
+    member this.getPath (p:List<HexDirection>) :Option<HexNode> =
+        let rec r (h:Option<HexNode>) (p:List<HexDirection>) :Option<HexNode> =
+            match h with
+            | None -> None
+            | _ ->
+                match p with
+                | [] -> h
+                | NorthEast::_  -> r h.Value.HexNorthEast p.Tail
+                | East::_       -> r h.Value.HexEast p.Tail
+                | SouthEast::_  -> r h.Value.HexSouthEast p.Tail
+                | SouthWest::_  -> r h.Value.HexSouthWest p.Tail
+                | West::_       -> r h.Value.HexWest p.Tail
+                | NorthWest::_  -> r h.Value.HexNorthWest p.Tail
+        r (Some(this)) p
+    member this.attach (h:Hex)(id:int) :HexNode =
+        let attachd (d:HexDirection) (h:Hex) =
+            match d with
+            | HexDirection.NorthEast -> 
+                let newNode=new HexNode(h,
+                                        this.getPath [East;NorthEast;NorthWest],
+                                        this.getPath [East;NorthEast],
+                                        this.getPath [East],
+                                        Some(this),
+                                        this.getPath [NorthWest],
+                                        this.getPath [NorthWest;NorthEast])
+                new HexNode(this.Hex,
+                            Some(newNode),            
+                            this.HexEast,
+                            this.HexSouthEast,
+                            this.HexSouthWest,
+                            this.HexWest,
+                            this.HexNorthWest)
+        let row0=2
+        let row1=4+row0
+        let row2=5+row1
+        let row3=4+row2
+        let row4=3+row3
+        match id with
+        | x when x<row0 -> attachd East h
+        | x when x=row0 -> attachd SouthEast h
+        | x when x<row1 -> attachd West h
+        | x when x=row1 -> attachd SouthWest h
+        | x when x<row2 -> attachd East h
+        | x when x=row2 -> attachd SouthWest h
+        | x when x<row3 -> attachd West h
+        | x when x=row4 -> attachd SouthEast h
+        | _             -> attachd East h
 
 type Road(color:Color,id:int) = 
     member this.Color=color
@@ -25,7 +81,6 @@ type Road(color:Color,id:int) =
             match o with
             | :? Road as rd -> compare this.Id rd.Id 
             | _ -> 1
-
 type Settlement(color:Color,id:int) =
     member this.Color=color
     member this.Id=id
@@ -37,10 +92,10 @@ type City(color:Color,id:int) =
 type SettlementOrCity =    
     |ACity of City*Hex*Hex*Hex
     |ASettlement of Settlement*Hex*Hex*Hex
-    member this.IsACity = match this with
+    member this.IsaCity = match this with
                             |ACity(_) -> true
                             |ASettlement(_) -> false
-    member this.IsASettlement = not this.IsACity
+    member this.IsaSettlement = not this.IsaCity
 
 type SettlementOrCityVertex(settlementOrCity:SettlementOrCity,hexLeft:Hex,hexRight:Hex,hexDown:Hex,harbor:Harbor) =
     member this.SettlementOrCity = settlementOrCity
@@ -76,113 +131,3 @@ let BuildCostMapping (b:Buildable) :List<Resource> =
     |BuildableCity -> [Grain;Grain;Grain;Ore;Ore]
     |BuildableRoad -> [Brick;Wood]
     |BuildableDevelopmentCard -> [Grain;Ore;Wool]
-
-//this represents settlements and roads in a specialized graph
-type CatanPlayer(color:Color,resources:List<Resource>,developmentCards:List<DevelopmentCard>,specialCards:List<SpecialCard>,settlementGraph:SettlementGraph) = 
-    member this.Color=color
-    member this.Resources=resources
-    member this.DevelopmentCards=developmentCards
-    member this.SpecialCards=specialCards   
-    member this.SettlementGraph=settlementGraph 
-    member this.IterateSettlements :List<SettlementOrCityVertex>=
-        let rec IterateSettlementsHelper gr h =
-            let IterateSettlementHelperIfSomeAndNotVisited oGr (h:Set<Road>)=
-                match oGr with
-                |None -> []
-                |Some(r:RoadVertex,s:SettlementGraph) -> if (h.Contains r.Road) then [] else (IterateSettlementsHelper s h)
-            match gr with
-            |SettlementGraph.DeadEnd -> []
-            |SettlementGraph.SettlementNode( s,r1,r2,r3 )-> 
-                let sList=if s.IsSome then [s] else []
-                let r1List=IterateSettlementHelperIfSomeAndNotVisited r1 h
-                let r2List=IterateSettlementHelperIfSomeAndNotVisited r2 h
-                let r3List=IterateSettlementHelperIfSomeAndNotVisited r3 h
-                List.append (List.append (List.append r1List r2List) r3List) sList
-        IterateSettlementsHelper this.SettlementGraph (new Set<Road>([])) 
-        |> List.filter (fun sg -> sg.IsSome)
-        |> List.map (fun sg -> sg.Value)
-    member this.CalculateResourcesFromRoll (r:Roll) :List<Resource> =
-        this.IterateSettlements
-        |> List.collect (fun (s:SettlementOrCityVertex) -> 
-                            [s.HexLeft;s.HexRight;s.HexDown] 
-                            |> List.filter (fun (h:Hex) -> h.RollChit.Roll = r)
-                            |> List.map (fun(h:Hex) -> h.Terrain))
-        |> List.map CatanUnionTypes.TerrainResourceMapping
-        |> List.filter (fun (r:Option<Resource>)->r.IsSome)
-        |> List.map (fun (r:Option<Resource>)->r.Value)
-    member this.CalculateMoves :List<CatanMove>=
-        let getTradeMovesForTradeRatioToOne (x:int) (nr:Resource) :List<CatanMove>=
-            this.Resources
-                |> Seq.groupBy (fun (r:Resource)->r)
-                |> Map.ofSeq
-                |> Map.map (fun k v -> Seq.length v)
-                |> Map.filter (fun k v -> v>=x)
-                |> Map.toList
-                |> List.map (fun (k,v)->k)
-                |> List.map (fun k->CatanMove.TradeResources(fun rcs->nr::(rcs
-                                                                        |>Util.removen x (fun r->r=k))))//TODO doesn't support multiples yet
-        let applyForEachResource f =
-            [Brick;Wool;Ore;Grain;Wood]
-            |>List.collect (fun r->f r)
-        let buildMoves= [BuildableSettlement;BuildableCity;BuildableRoad;BuildableDevelopmentCard]
-                        |> List.collect (fun b->if Util.containsm (BuildCostMapping b) this.Resources then [b] else [])
-                        |> List.map (fun b->(fun r->(Util.removeAllm (BuildCostMapping b) r),b))
-                        |> List.map (fun b->CatanMove.Build(b))//TODO doesn't support multiples yet
-        let playMoves=this.DevelopmentCards
-                        |> List.filter (fun dc->not dc.IsNew)
-                        |> List.map (fun dc->CatanMove.PlayDevelopmentCard(dc))
-        let tradeMoves=this.IterateSettlements
-                        |> List.collect (fun (s:SettlementOrCityVertex) -> match s.Harbor with
-                                                                            |Harbor.NoHarbor -> applyForEachResource (getTradeMovesForTradeRatioToOne 4)
-                                                                            |Harbor.NormalHarbor -> applyForEachResource (getTradeMovesForTradeRatioToOne 3) 
-                                                                            |Harbor.SpecialHarbor(x) -> applyForEachResource (getTradeMovesForTradeRatioToOne 2))
-        List.concat [buildMoves;playMoves;tradeMoves]
-    member this.CalculateScore :int= 
-        let devCardPoints=
-            this.DevelopmentCards 
-            |> List.filter (fun dc -> dc.DevelopmentCardType = DevelopmentCardType.VictoryPoint) 
-            |> List.length
-        let specialCardPoints=this.SpecialCards.Length*2
-        let settlementPoints=
-            this.IterateSettlements
-            |>List.sumBy (fun (soc:SettlementOrCityVertex)-> if soc.SettlementOrCity.IsACity then 2 else 1)
-        devCardPoints + specialCardPoints + settlementPoints
-
-//this represents settlements and roads in a full heap
-//type CatanPlayer(color:Color,resources:List<Resource>,developmentCards:List<DevelopmentCard>,specialCards:List<SpecialCard>,settlements:List<Option<SettlementOrCity>>,roads:List<Option<Road>>) = 
-//    member this.Color=color
-//    member this.Resources=resources
-//    member this.DevelopmentCards=developmentCards
-//    member this.SpecialCards=specialCards
-//    member this.Settlements=settlements
-//    member this.Roads=roads
-//    member this.CalculateScore = 
-//        let devCardPoints=
-//            this.DevelopmentCards 
-//            |> List.filter (fun dc -> dc = DevelopmentCard.VictoryPoint) 
-//            |> List.length
-//        let specialCardPoints=this.SpecialCards.Length*2
-//        let settlementPoints=
-//            this.Settlements
-//            |>List.sumBy (fun e->
-//                match e with
-//                |None -> 0
-//                |Some(s) -> match s with
-//                                |Settlement(_) -> 1 
-//                                |City(_) -> 2)
-//        devCardPoints + specialCardPoints + settlementPoints
-    
-type CatanBoard(hexes:List<Hex>,ports:List<Harbor>,players:List<CatanPlayer>) =
-    member this.Hexes= hexes
-    member this.Ports=ports
-    member this.Players=players
-    member this.Settlements=
-        players
-        |>List.map (fun p->p.Settlements)
-        |>Util.zipn
-        |>List.map (fun s-> s |> List.find (fun e->e.IsSome))
-    member this.Roads=
-        players
-        |>List.map (fun p->p.Roads)
-        |>Util.zipn
-        |>List.map (fun s-> s |> List.find (fun e->e.IsSome))
