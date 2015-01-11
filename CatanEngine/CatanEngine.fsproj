@@ -46,6 +46,8 @@
     <Compile Include="CatanUnionTypes.fs" />
     <None Include="Script.fsx" />
     <Compile Include="CatanRecordTypes.fs" />
+    <Compile Include="CatanPlayer.fs" />
+    <Compile Include="CatanBoard.fs" />
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
