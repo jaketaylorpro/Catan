@@ -1,7 +1,0 @@
-C:\Users\jtaylor\Documents\Visual Studio 2013\Projects\Catan\CatanEngine\bin\Debug\CatanEngine.XML
-C:\Users\jtaylor\Documents\Visual Studio 2013\Projects\Catan\CatanEngine\bin\Debug\CatanEngine.dll
-C:\Users\jtaylor\Documents\Visual Studio 2013\Projects\Catan\CatanEngine\bin\Debug\CatanEngine.pdb
-C:\Users\jtaylor\Documents\Visual Studio 2013\Projects\Catan\CatanEngine\bin\Debug\FSharp.Core.dll
-C:\Users\jtaylor\Documents\Visual Studio 2013\Projects\Catan\CatanEngine\bin\Debug\FSharp.Core.xml
-C:\Users\jtaylor\Documents\Visual Studio 2013\Projects\Catan\CatanEngine\obj\Debug\CatanEngine.dll
-C:\Users\jtaylor\Documents\Visual Studio 2013\Projects\Catan\CatanEngine\obj\Debug\CatanEngine.pdb
