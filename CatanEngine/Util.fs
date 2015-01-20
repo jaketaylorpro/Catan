@@ -1,4 +1,9 @@
 ﻿module Util
+let rec firstSome (l:List<Option<'a>>) :Option<'a>= 
+    match l with
+    | [] -> None
+    | Some(a)::t -> Some(a)
+    | _ -> firstSome l.Tail
 let rec tailn<'a> (n:int) (l:List<'a>) :List<'a>=
     match n with
     |0 -> l

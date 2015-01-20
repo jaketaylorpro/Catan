@@ -82,6 +82,107 @@ let buildRollChitDeck :List<RollChit> =
         | i when i<_12 -> rhelp Roll.Twelve
         |_ -> l
     r [] 0
+
+
+
+
+
+let getPath (oh:HexNode) (p:List<HexDirection>) :Option<HexNode> =
+    let rec r (h:Option<HexNode>) (p:List<HexDirection>) :Option<HexNode> =
+        match h with
+        | None -> None
+        | _ ->
+            match p with
+            | [] -> h
+            | NorthEast::_  -> r h.Value.HexNorthEast p.Tail
+            | East::_       -> r h.Value.HexEast p.Tail
+            | SouthEast::_  -> r h.Value.HexSouthEast p.Tail
+            | SouthWest::_  -> r h.Value.HexSouthWest p.Tail
+            | West::_       -> r h.Value.HexWest p.Tail
+            | NorthWest::_  -> r h.Value.HexNorthWest p.Tail
+    r (Some(oh)) p
+
+let copyAttach (oh:HexNode) (d:HexDirection) (h:HexNode) :HexNode=
+    match d with
+    | NorthEast -> new HexNode(oh.Hex, Some(h)           , oh.HexEast, oh.HexSouthEast, oh.HexSouthWest, oh.HexWest, oh.HexNorthWest)
+    | East      -> new HexNode(oh.Hex, oh.HexNorthEast   , Some(h)   , oh.HexSouthEast, oh.HexSouthWest, oh.HexWest, oh.HexNorthWest)
+    | SouthEast -> new HexNode(oh.Hex, oh.HexNorthEast   , oh.HexEast, Some(h)        , oh.HexSouthWest, oh.HexWest, oh.HexNorthWest)
+    | SouthWest -> new HexNode(oh.Hex, oh.HexNorthEast   , oh.HexEast, oh.HexSouthEast, Some(h)        , oh.HexWest, oh.HexNorthWest)
+    | West      -> new HexNode(oh.Hex, oh.HexNorthEast   , oh.HexEast, oh.HexSouthEast, oh.HexSouthWest, Some(h)   , oh.HexNorthWest)
+    | NorthWest -> new HexNode(oh.Hex, oh.HexNorthEast   , oh.HexEast, oh.HexSouthEast, oh.HexSouthWest, oh.HexWest, Some(h)        )
+let attach (oh:HexNode) (h:Hex)(id:int) :HexNode =
+        let attachd (d:HexDirection) (h:Hex) =
+            match d with
+            | HexDirection.NorthEast -> 
+                let newNode=new HexNode(h,
+                                        getPath oh [East;NorthEast;NorthWest],//NE
+                                        getPath oh [East;NorthEast],//E
+                                        getPath oh [East],//SE
+                                        Some(oh),//SW
+                                        getPath oh [NorthWest],//W
+                                        getPath oh [NorthWest;NorthEast])//NW
+                copyAttach oh d newNode
+            | HexDirection.East ->
+                let rec newNode=new HexNode(h,
+                                        getPath oh [NorthEast;East],
+                                        getPath oh [NorthEast;East;SouthEast],
+                                        getPath oh [SouthEast;East],
+                                        getPath oh [SouthEast],
+                                        Some(oh),
+                                        getPath oh [NorthEast])
+                copyAttach oh d newNode
+            | HexDirection.SouthEast -> 
+                let rec newNode=new HexNode(h,
+                                        getPath oh [East],
+                                        getPath oh [East;SouthEast],
+                                        getPath oh [East;SouthEast;SouthWest],
+                                        getPath oh [SouthWest;SouthEast],
+                                        getPath oh [SouthWest],
+                                        Some(oh))
+                copyAttach oh d newNode
+            | HexDirection.SouthWest ->
+                let rec newNode=new HexNode(h,
+                                        Some(oh),
+                                        getPath oh [SouthEast],
+                                        getPath oh [SouthEast;SouthWest],
+                                        getPath oh [SouthEast;SouthWest;West],
+                                        getPath oh [West;SouthWest],
+                                        getPath oh [West])
+                copyAttach oh d newNode
+            | HexDirection.West ->
+                let rec newNode=new HexNode(h,
+                                        getPath oh [NorthWest],
+                                        Some(oh),
+                                        getPath oh [SouthWest],
+                                        getPath oh [SouthWest;West],
+                                        getPath oh [SouthWest;West;NorthWest],
+                                        getPath oh [NorthWest;West])
+                copyAttach oh d newNode
+            | HexDirection.NorthWest ->
+                let rec newNode=new HexNode(h,
+                                        getPath oh [NorthEast;NorthWest],
+                                        getPath oh [NorthEast],
+                                        Some(oh),
+                                        getPath oh [West],
+                                        getPath oh [West;NorthWest],
+                                        getPath oh [West;NorthWest;NorthEast])
+                copyAttach oh d newNode
+        let row0=2
+        let row1=4+row0
+        let row2=5+row1
+        let row3=4+row2
+        let row4=3+row3
+        match id with
+        | x when x<row0 -> attachd East h
+        | x when x=row0 -> attachd SouthEast h
+        | x when x<row1 -> attachd West h
+        | x when x=row1 -> attachd SouthWest h
+        | x when x<row2 -> attachd East h
+        | x when x=row2 -> attachd SouthWest h
+        | x when x<row3 -> attachd West h
+        | x when x=row4 -> attachd SouthEast h
+        | _             -> attachd East h
+
 let buildHexMap :HexNode =
     let terrainDeck=buildTerrainDeck
     let rollChitDeck=buildRollChitDeck
@@ -95,8 +196,8 @@ let buildHexMap :HexNode =
         let nextRollChitDeck = if t=Terrain.Desert then rcd else Util.removeIndex rcd rci
         match h with
         | None -> r (Some(new HexNode(new Hex(t,rc,Robber.NoRobber,id),None,None,None,None,None,None))) nextTerrainDeck nextRollChitDeck (id+1) 
-        | _ ->
+        | Some(hValue) ->
             match td with
-            | [] -> h.Value
-            | _ -> r (h.Value.attach (new Hex(t,rc,Robber.NoRobber,id)) id) nextTerrainDeck nextRollChitDeck (id+1)
+            | [] -> hValue
+            | _ -> r (Some(attach hValue (new Hex(t,rc,Robber.NoRobber,id)) id)) nextTerrainDeck nextRollChitDeck (id+1)
     r None terrainDeck rollChitDeck 0

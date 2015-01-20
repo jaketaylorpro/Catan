@@ -25,53 +25,6 @@ type HexNode (hex:Hex,hexNE:Option<HexNode>,hexE:Option<HexNode>,hexSE:Option<He
     member this.HexSouthWest=hexSW
     member this.HexWest=hexW
     member this.HexNorthWest=hexNW
-    member this.getPath (p:List<HexDirection>) :Option<HexNode> =
-        let rec r (h:Option<HexNode>) (p:List<HexDirection>) :Option<HexNode> =
-            match h with
-            | None -> None
-            | _ ->
-                match p with
-                | [] -> h
-                | NorthEast::_  -> r h.Value.HexNorthEast p.Tail
-                | East::_       -> r h.Value.HexEast p.Tail
-                | SouthEast::_  -> r h.Value.HexSouthEast p.Tail
-                | SouthWest::_  -> r h.Value.HexSouthWest p.Tail
-                | West::_       -> r h.Value.HexWest p.Tail
-                | NorthWest::_  -> r h.Value.HexNorthWest p.Tail
-        r (Some(this)) p
-    member this.attach (h:Hex)(id:int) :HexNode =
-        let attachd (d:HexDirection) (h:Hex) =
-            match d with
-            | HexDirection.NorthEast -> 
-                let newNode=new HexNode(h,
-                                        this.getPath [East;NorthEast;NorthWest],
-                                        this.getPath [East;NorthEast],
-                                        this.getPath [East],
-                                        Some(this),
-                                        this.getPath [NorthWest],
-                                        this.getPath [NorthWest;NorthEast])
-                new HexNode(this.Hex,
-                            Some(newNode),            
-                            this.HexEast,
-                            this.HexSouthEast,
-                            this.HexSouthWest,
-                            this.HexWest,
-                            this.HexNorthWest)
-        let row0=2
-        let row1=4+row0
-        let row2=5+row1
-        let row3=4+row2
-        let row4=3+row3
-        match id with
-        | x when x<row0 -> attachd East h
-        | x when x=row0 -> attachd SouthEast h
-        | x when x<row1 -> attachd West h
-        | x when x=row1 -> attachd SouthWest h
-        | x when x<row2 -> attachd East h
-        | x when x=row2 -> attachd SouthWest h
-        | x when x<row3 -> attachd West h
-        | x when x=row4 -> attachd SouthEast h
-        | _             -> attachd East h
 
 type Road(color:Color,id:int) = 
     member this.Color=color
@@ -81,6 +34,12 @@ type Road(color:Color,id:int) =
             match o with
             | :? Road as rd -> compare this.Id rd.Id 
             | _ -> 1
+    override this.Equals o =
+        match o with
+        | :? Road as rd -> this.Id = rd.Id
+        | _ -> false
+    override this.GetHashCode() =
+        hash(this.Id)
 type Settlement(color:Color,id:int) =
     member this.Color=color
     member this.Id=id

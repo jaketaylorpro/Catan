@@ -18,6 +18,17 @@ type Color = Red | Blue | Orange | White
 type DevelopmentCardType = RoadBuilding | YearOfPlenty | Monopoly | Knight | VictoryPoint
 type SpecialCard = LongestRoad | LargestArmy
 type HexDirection = NorthEast | East | SouthEast | SouthWest | West | NorthWest
+
+
+
+let ClockWise d =
+        match d with
+        | NorthEast -> East
+        | East -> SouthEast
+        | SouthEast -> SouthWest
+        | SouthWest -> West
+        | West -> NorthWest
+        | NorthWest -> NorthEast
 let TerrainResourceMapping (t:Terrain) :Option<Resource> =
     match t with
     |Hills      -> Some(Brick)

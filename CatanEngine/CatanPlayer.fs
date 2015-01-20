@@ -32,7 +32,7 @@ type CatanPlayer(color:Color,resources:List<Resource>,developmentCards:List<Deve
         this.IterateSettlements
         |> List.collect (fun (s:SettlementOrCityVertex) -> 
                             [s.HexLeft;s.HexRight;s.HexDown] 
-                            |> List.filter (fun (h:Hex) -> h.RollChit.Roll = r)
+                            |> List.filter (fun (h:Hex) -> (h.RollChit.IsSome && h.RollChit.Value.Roll = r))
                             |> List.map (fun(h:Hex) -> h.Terrain))
         |> List.map CatanUnionTypes.TerrainResourceMapping
         |> List.filter (fun (r:Option<Resource>)->r.IsSome)
