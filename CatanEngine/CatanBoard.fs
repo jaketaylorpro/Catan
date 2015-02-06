@@ -86,7 +86,7 @@ let buildRollChitDeck :List<RollChit> =
 
 
 
-
+(*
 let getPath (oh:HexNode) (p:List<HexDirection>) :Option<HexNode> =
     let rec r (h:Option<HexNode>) (p:List<HexDirection>) :Option<HexNode> =
         match h with
@@ -201,3 +201,4 @@ let buildHexMap :HexNode =
             | [] -> hValue
             | _ -> r (Some(attach hValue (new Hex(t,rc,Robber.NoRobber,id)) id)) nextTerrainDeck nextRollChitDeck (id+1)
     r None terrainDeck rollChitDeck 0
+    *)

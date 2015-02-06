@@ -35,7 +35,6 @@ let rec removeAllm<'a when 'a : comparison> (sl:List<'a>) (l:List<'a>) :List<'a>
     |[] -> l
     |_ -> let x= (List.findIndex (fun o->o=sl.Head) l)
           removeAllm (removeIndex l x) (sl.Tail)
-
 type HexGraph<'a ,'b when 'a : comparison and 'b : comparison>=
     | Vertex of 'a * Option<HexGraph<'a,'b>> * Option<HexGraph<'a,'b>> * Option<HexGraph<'a,'b>>
     | Edge of 'b * Option<HexGraph<'a,'b>> * Option<HexGraph<'a,'b>>
