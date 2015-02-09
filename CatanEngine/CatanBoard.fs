@@ -34,7 +34,7 @@ let buildDevelopmentCardDeck :List<DevelopmentCard>=
         |_ -> l
     r [] 0
 
-let buildTerrainDeck :List<Terrain> =
+let buildTerrainSudoDeck :List<Terrain> =
     //id ranges
     let fst=4    //4 forest
     let pst=fst+4//4 pasture
@@ -82,7 +82,20 @@ let buildRollChitDeck :List<RollChit> =
         | i when i<_12 -> rhelp Roll.Twelve
         |_ -> l
     r [] 0
-
+let buildHexDeck :List<Hex> =
+    let terrainDeck=buildTerrainSudoDeck
+    let rollChitDeck=buildRollChitDeck
+    let rec r (l:List<Hex>)(td:List<Terrain>) (rcd:List<RollChit>) (id:int) :List<Hex> =
+        match td with //we match on the terrain deck because it will be emptied last (it has one more element than the roll chit deck)
+        |[] -> l
+        |_ ->
+            let t,nextTerrainDeck=Util.List.randHeadTail td
+            let rc,nextRollChitDeck,robber=match t with
+                                            |Terrain.Desert -> None,rcd,Robber.Robber
+                                            | _ -> let a,b=Util.List.randHeadTail rcd
+                                                   Some(a),b,Robber.NoRobber
+            r (new Hex(t,rc,robber,id)::l) nextTerrainDeck nextRollChitDeck (id+1)
+    r [] terrainDeck rollChitDeck 0
 
 
 

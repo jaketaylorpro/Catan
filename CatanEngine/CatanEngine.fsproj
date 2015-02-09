@@ -44,6 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Util.fs" />
+    <Compile Include="YamlOut.fs" />
     <Compile Include="CatanUnionTypes.fs" />
     <None Include="Script.fsx" />
     <Compile Include="CatanRecordTypes.fs" />

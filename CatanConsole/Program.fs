@@ -13,6 +13,9 @@ let printValue argv =
 let buildAndPrint x =
     match x with 
     | ["development-card-deck"] -> printValue (CatanBoard.buildDevelopmentCardDeck|>List.toArray)
+    | ["terrain-sudo-deck"] -> printValue (CatanBoard.buildTerrainSudoDeck|>List.toArray)
+    | ["roll-chit-deck"] -> printValue (CatanBoard.buildRollChitDeck|>List.toArray)
+    | ["hex-deck"] -> printValue (CatanBoard.buildHexDeck|>List.toArray)
     | _ -> printHelp ("build"::x)
 
 [<EntryPoint>]

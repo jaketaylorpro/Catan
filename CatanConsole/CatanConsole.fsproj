@@ -48,7 +48,6 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="YamlOut.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />
   </ItemGroup>
