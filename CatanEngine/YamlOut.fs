@@ -11,18 +11,18 @@ let toYaml (o:obj) :string =
         let stringToYaml (s:string) (ind:int) :string=
             s+"\n"
 //            (tabs ind)+s+"\n"
-        let arrayToYaml (l:'a[]) (ind:int) :string=
+        let arrayToYaml (l:'a[]) (ind:int) (inl:bool) :string=
             match l.Length with
             | 0 -> "[]\n"
             | _ ->
-                let init=if inList then "" else "\n"
-                Util.List.arrayFoldi (fun acc v i-> acc+(tabs ind)+"- "+(toYamli v (ind+1) true)+"") init l
-        let mapToYaml (m:Map<string,_>) (ind:int) :string=
+                let init=if inl then "" else "\n"
+                Util.List.arrayFoldi (fun acc v i-> acc+ (if inl && i=1 then "" else (tabs ind))+"- "+(toYamli v (ind+1) true)) init l
+        let mapToYaml (m:Map<string,_>) (ind:int) (inl:bool) :string=
             match m.Count with
             | 0 -> "{}\n"
             | _ ->
-                let init=if inList then "" else "\n"
-                Util.List.mapFoldi (fun acc k v i -> acc+(tabs ind)+k+": "+(toYamli v (ind+1) false)+"") init m
+                let init=if inl then "" else "\n"
+                Util.List.mapFoldi (fun acc k v i -> acc+(if inl && i=0 then "" else (tabs ind))+k+": "+(toYamli v (ind+1) false)) init m
         //handle record types
         let classToMap (c:'a) :Map<string,obj>=
             let p=c.GetType().GetProperties()
@@ -38,9 +38,9 @@ let toYaml (o:obj) :string =
         match o with
         | null -> stringToYaml "None" ind //None gets cast to null when its an obj
         | p when p.GetType().IsPrimitive -> stringToYaml (p.ToString()) ind
-        | a when a.GetType().IsArray -> arrayToYaml (a:?>obj[]) ind
-        | m when m.GetType().Name="Map"-> mapToYaml (m:?>Map<string,obj>) ind
-        | u when FSharpType.IsUnion (u.GetType()) -> mapToYaml (unionToMap u) ind
-        | c when c.GetType().IsClass -> mapToYaml (classToMap c) ind
+        | a when a.GetType().IsArray -> arrayToYaml (a:?>obj[]) ind inList
+        | m when m.GetType().Name="Map"-> mapToYaml (m:?>Map<string,obj>) ind inList
+        | u when FSharpType.IsUnion (u.GetType()) -> mapToYaml (unionToMap u) ind inList
+        | c when c.GetType().IsClass -> mapToYaml (classToMap c) ind inList
         | x -> "(x)"+x.ToString()
     toYamli o 0 false
