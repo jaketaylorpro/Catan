@@ -99,7 +99,7 @@ let buildHexDeck :List<Hex> =
 
 
 
-(*
+
 let getPath (oh:HexNode) (p:List<HexDirection>) :Option<HexNode> =
     let rec r (h:Option<HexNode>) (p:List<HexDirection>) :Option<HexNode> =
         match h with
@@ -123,7 +123,7 @@ let copyAttach (oh:HexNode) (d:HexDirection) (h:HexNode) :HexNode=
     | SouthWest -> new HexNode(oh.Hex, oh.HexNorthEast   , oh.HexEast, oh.HexSouthEast, Some(h)        , oh.HexWest, oh.HexNorthWest)
     | West      -> new HexNode(oh.Hex, oh.HexNorthEast   , oh.HexEast, oh.HexSouthEast, oh.HexSouthWest, Some(h)   , oh.HexNorthWest)
     | NorthWest -> new HexNode(oh.Hex, oh.HexNorthEast   , oh.HexEast, oh.HexSouthEast, oh.HexSouthWest, oh.HexWest, Some(h)        )
-let attach (oh:HexNode) (h:Hex)(id:int) :HexNode =
+let attach (oh:HexNode) (h:Hex) :HexNode =
         let attachd (d:HexDirection) (h:Hex) =
             match d with
             | HexDirection.NorthEast -> 
@@ -185,33 +185,25 @@ let attach (oh:HexNode) (h:Hex)(id:int) :HexNode =
         let row2=5+row1
         let row3=4+row2
         let row4=3+row3
-        match id with
-        | x when x<row0 -> attachd East h
-        | x when x=row0 -> attachd SouthEast h
-        | x when x<row1 -> attachd West h
-        | x when x=row1 -> attachd SouthWest h
-        | x when x<row2 -> attachd East h
-        | x when x=row2 -> attachd SouthWest h
-        | x when x<row3 -> attachd West h
-        | x when x=row4 -> attachd SouthEast h
+        match h.Id with
+        | s,x when x<row0 -> attachd East h
+        | s,x when x=row0 -> attachd SouthEast h
+        | s,x when x<row1 -> attachd West h
+        | s,x when x=row1 -> attachd SouthWest h
+        | s,x when x<row2 -> attachd East h
+        | s,x when x=row2 -> attachd SouthWest h
+        | s,x when x<row3 -> attachd West h
+        | s,x when x=row4 -> attachd SouthEast h
         | _             -> attachd East h
 
-let buildHexMap :HexNode =
-    let terrainDeck=buildTerrainDeck
-    let rollChitDeck=buildRollChitDeck
-    let rnd=System.Random()
-    let rec r (h:Option<HexNode>)(td:List<Terrain>) (rcd:List<RollChit>) (id:int) :HexNode =
-        let ti=rnd.Next td.Length
-        let t=List.nth td ti
-        let nextTerrainDeck= Util.removeIndex td ti
-        let rci=rnd.Next rcd.Length
-        let rc = if t=Terrain.Desert then None else Some(List.nth rcd rci)
-        let nextRollChitDeck = if t=Terrain.Desert then rcd else Util.removeIndex rcd rci
-        match h with
-        | None -> r (Some(new HexNode(new Hex(t,rc,Robber.NoRobber,id),None,None,None,None,None,None))) nextTerrainDeck nextRollChitDeck (id+1) 
-        | Some(hValue) ->
-            match td with
-            | [] -> hValue
-            | _ -> r (Some(attach hValue (new Hex(t,rc,Robber.NoRobber,id)) id)) nextTerrainDeck nextRollChitDeck (id+1)
-    r None terrainDeck rollChitDeck 0
-    *)
+let buildHexMap :Option<HexNode> =
+    let rec r (h:Option<HexNode>)(hd:List<Hex>) :Option<HexNode> =
+        match hd.Length with
+        | 0 -> h 
+        | _ -> 
+            let hex,nextHexDeck=Util.ListOps.randHeadTail hd
+            match h with
+            | None -> r (Some(new HexNode(hex,None,None,None,None,None,None))) nextHexDeck 
+            | Some(hValue) ->
+                r (Some(attach hValue hex)) nextHexDeck
+    r None (buildHexDeck)

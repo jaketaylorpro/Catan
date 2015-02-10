@@ -12,10 +12,11 @@ let printValue argv =
     System.Console.WriteLine serializedValue
 let buildAndPrint x =
     match x with 
-    | ["development-card-deck"] -> printValue (CatanBoard.buildDevelopmentCardDeck|>List.toArray)
-    | ["terrain-sudo-deck"] -> printValue (CatanBoard.buildTerrainSudoDeck|>List.toArray)
-    | ["roll-chit-deck"] -> printValue (CatanBoard.buildRollChitDeck|>List.toArray)
-    | ["hex-deck"] -> printValue (CatanBoard.buildHexDeck|>List.toArray)
+    | ["development-card-deck"] -> printValue (CatanBoard.buildDevelopmentCardDeck)
+    | ["terrain-sudo-deck"] -> printValue (CatanBoard.buildTerrainSudoDeck)
+    | ["roll-chit-deck"] -> printValue (CatanBoard.buildRollChitDeck)
+    | ["hex-deck"] -> printValue (CatanBoard.buildHexDeck)
+    | ["hex-map"] -> printValue (CatanBoard.buildHexMap)
     | _ -> printHelp ("build"::x)
 
 [<EntryPoint>]
