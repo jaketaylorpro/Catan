@@ -89,10 +89,10 @@ let buildHexDeck :List<Hex> =
         match td with //we match on the terrain deck because it will be emptied last (it has one more element than the roll chit deck)
         |[] -> l
         |_ ->
-            let t,nextTerrainDeck=Util.List.randHeadTail td
+            let t,nextTerrainDeck=Util.ListOps.randHeadTail td
             let rc,nextRollChitDeck,robber=match t with
                                             |Terrain.Desert -> None,rcd,Robber.Robber
-                                            | _ -> let a,b=Util.List.randHeadTail rcd
+                                            | _ -> let a,b=Util.ListOps.randHeadTail rcd
                                                    Some(a),b,Robber.NoRobber
             r (new Hex(t,rc,robber,id)::l) nextTerrainDeck nextRollChitDeck (id+1)
     r [] terrainDeck rollChitDeck 0

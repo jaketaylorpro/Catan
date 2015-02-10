@@ -47,13 +47,13 @@ type CatanPlayer(color:Color,resources:List<Resource>,developmentCards:List<Deve
                 |> Map.toList
                 |> List.map (fun (k,v)->k)
                 |> List.map (fun k->CatanMove.TradeResources(fun rcs->nr::(rcs
-                                                                        |>Util.List.removen x (fun r->r=k))))//TODO doesn't support multiples yet
+                                                                        |>Util.ListOps.removen x (fun r->r=k))))//TODO doesn't support multiples yet
         let applyForEachResource f =
             [Brick;Wool;Ore;Grain;Wood]
             |>List.collect (fun r->f r)
         let buildMoves= [BuildableSettlement;BuildableCity;BuildableRoad;BuildableDevelopmentCard]
-                        |> List.collect (fun b->if Util.List.containsm (BuildCostMapping b) this.Resources then [b] else [])
-                        |> List.map (fun b->(fun r->(Util.List.removeAllm (BuildCostMapping b) r),b))
+                        |> List.collect (fun b->if Util.ListOps.containsm (BuildCostMapping b) this.Resources then [b] else [])
+                        |> List.map (fun b->(fun r->(Util.ListOps.removeAllm (BuildCostMapping b) r),b))
                         |> List.map (fun b->CatanMove.Build(b))//TODO doesn't support multiples yet
         let playMoves=this.DevelopmentCards
                         |> List.filter (fun dc->not dc.IsNew)

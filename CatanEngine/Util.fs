@@ -1,5 +1,6 @@
 ﻿module Util
-    module List =
+open Microsoft.FSharp.Reflection
+    module ListOps =
         let rec firstSome (l:List<Option<'a>>) :Option<'a>= 
             match l with
             | [] -> None
@@ -42,17 +43,13 @@
             let head=List.nth l i
             let tail= removeIndex l i
             head,tail
+    module ArrayOps=
         //array
         let arrayHeadTail a=
             let l=a|>Array.toList
             let head=l|>List.head
             let tail=l|>List.tail|>List.toArray
             head,tail
-        let mapHeadTail m=
-            let l=m|>Map.toList
-            let head=l|>List.head
-            let tail=l|>List.tail            
-            head,new Map<_,_>(tail)
         let arrayFoldi (folder:('b->'a->int->'b)) (state:'b) (arr:'a[])=
             let rec helper f s (a:'a[]) (i:int)=
                 match a.Length with
@@ -61,6 +58,12 @@
                     let h,t=arrayHeadTail a
                     helper f (f s h i) t (i+1)
             helper folder state arr 0
+    module MapOps=
+        let mapHeadTail m=
+            let l=m|>Map.toList
+            let head=l|>List.head
+            let tail=l|>List.tail            
+            head,new Map<_,_>(tail)
         let mapFoldi (folder:('b->'k->'v->int->'b)) (state:'b) (map:Map<'k,'v>)=
             let rec helper f s (m:Map<'k,'v>) (i:int)=
                 match m.Count with
@@ -69,6 +72,19 @@
                     let (hk,hv),t=mapHeadTail m
                     helper f (f s hk hv i) t (i+1)
             helper folder state map 0
+    module TypeOps=
+        let IfUnionGetFieldsLength (u) :Option<int>=
+            let isUnion=FSharpType.IsUnion (u.GetType())
+            match isUnion with
+            |true ->
+                let (_,fields)=FSharpValue.GetUnionFields(u,(u.GetType()))
+                Some(fields.Length)
+            |false -> None
+        let IsSimpleUnionType (u) :bool=
+            (IfUnionGetFieldsLength u) = Some(0)
+        let IsComplexUnionType (u) :bool=
+            let f=IfUnionGetFieldsLength u
+            f.IsSome&&f.Value>0
     type HexGraph<'a ,'b when 'a : comparison and 'b : comparison>=
         | Vertex of 'a * Option<HexGraph<'a,'b>> * Option<HexGraph<'a,'b>> * Option<HexGraph<'a,'b>>
         | Edge of 'b * Option<HexGraph<'a,'b>> * Option<HexGraph<'a,'b>>
